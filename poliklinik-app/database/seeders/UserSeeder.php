@@ -33,6 +33,7 @@ class UserSeeder extends Seeder
                 'email' => 'pasien@gmail.com',
                 'password' => Hash::make('pasien'),
                 'role' => 'pasien',
+                'no_rm' => date('Ym') . '.001',
             ],
         ];
 

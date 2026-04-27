@@ -55,14 +55,6 @@
                 <i class="fas fa-gauge-high w-4 text-center"></i>
                 Dashboard Admin
             </a>
-
-        </div>
-        @endif
-
-        {{-- ================= MANAJEMEN POLI ================= --}}
-        @if(request()->is('admin*'))
-
-        <div class="space-y-1">
             <a href="{{ route('polis.index') }}"
                 class="{{ $baseLink }} {{ request()->routeIs('polis.*') ? $active : $inactive }}">
                 <i class="fas fa-hospital w-4 text-center"></i>
@@ -85,6 +77,7 @@
             </a>
 
 
+
         </div>
         @endif
 
@@ -102,6 +95,11 @@
                 class="{{ $baseLink }} {{ request()->routeIs('pasien.dashboard') ? $active : $inactive }}">
                 <i class="fas fa-house-medical w-4 text-center"></i>
                 Dashboard Pasien
+            </a>
+            <a href="{{ route('pasien.daftar') }}"
+                class="{{ $baseLink }} {{ request()->routeIs('pasien.daftar') ? $active : $inactive }}">
+                <i class="fas fa-house-medical w-4 text-center"></i>
+                Pendaftaran Periksa
             </a>
 
 
@@ -122,6 +120,11 @@
                 class="{{ $baseLink }} {{ request()->routeIs('dokter.dashboard') ? $active : $inactive }}">
                 <i class="fas fa-stethoscope w-4 text-center"></i>
                 Dashboard Dokter
+            </a>
+            <a href="{{ route('jadwal-periksa.index') }}"
+                class="{{ $baseLink }} {{ request()->routeIs('jadwal-periksa.*') ? $active : $inactive }}">
+                <i class="fas fa-stethoscope w-4 text-center"></i>
+                Jadwal Periksa
             </a>
 
         </div>
