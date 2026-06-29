@@ -18,6 +18,15 @@
 
             <form action="{{ route('periksa-pasien.store') }}" method="POST">
                 @csrf
+                @if ($errors->any())
+                <div class="alert alert-error mb-4 rounded-xl shadow-sm text-sm text-red-600 bg-red-50 border border-red-200">
+                    <ul class="list-disc pl-5">
+                        @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+                @endif
                 <input type="hidden" name="id_daftar_poli" value="{{ $id }}">
 
                 {{-- Pilih Obat --}}
@@ -30,8 +39,9 @@
                         @foreach ($obats as $obat)
                         <option value="{{ $obat->id }}"
                             data-nama="{{ $obat->nama_obat }}"
-                            data-harga="{{ $obat->harga }}">
-                            {{ $obat->nama_obat }} - Rp{{ number_format($obat->harga) }}
+                            data-harga="{{ $obat->harga }}"
+                            data-stok="{{ $obat->stok }}">
+                            {{ $obat->nama_obat }} - Rp{{ number_format($obat->harga) }} (Stok: {{ $obat->stok }})
                         </option>
                         @endforeach
                     </select>
@@ -100,8 +110,17 @@
             const id = selectedOption.value;
             const nama = selectedOption.dataset.nama;
             const harga = parseInt(selectedOption.dataset.harga || 0);
+            const stok = parseInt(selectedOption.dataset.stok || 0);
 
-            if (!id || daftarObat.some(o => o.id == id)) return;
+            if (!id) return;
+
+            if (stok < 1) {
+                alert('Stok obat habis! Silakan pilih obat lain.');
+                selectObat.selectedIndex = 0;
+                return;
+            }
+
+            if (daftarObat.some(o => o.id == id)) return;
 
             daftarObat.push({
                 id,

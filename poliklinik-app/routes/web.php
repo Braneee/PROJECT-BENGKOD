@@ -24,7 +24,30 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
 Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
     Route::get('/dashboard', function () {
-        return view('admin.dashboard');
+        $totalObat = \App\Models\Obat::count();
+        $polis = \App\Models\Poli::withCount('dokters')->get();
+        $dokters = \App\Models\User::where('role', 'dokter')->with('poli')->get();
+        
+        $riwayatPasien = \App\Models\DaftarPoli::with(['pasien', 'jadwalPeriksa.dokter', 'periksas'])
+            ->latest()
+            ->take(10) // Limit to latest 10 for dashboard
+            ->get()
+            ->map(function ($daftar) {
+                $daftar->status = $daftar->periksas->count() > 0 ? 'Sudah Diperiksa' : 'Belum Diperiksa';
+                return $daftar;
+            });
+
+        $visits = \App\Models\DaftarPoli::where('created_at', '>=', now()->subDays(6))
+            ->get()
+            ->groupBy(function($item) { return $item->created_at->format('Y-m-d'); })
+            ->sortKeys();
+
+        $chartData = [
+            'labels' => $visits->keys()->map(function($d) { return \Carbon\Carbon::parse($d)->format('d M'); })->values()->toArray(),
+            'data' => $visits->map->count()->values()->toArray()
+        ];
+
+        return view('admin.dashboard', compact('totalObat', 'polis', 'dokters', 'riwayatPasien', 'chartData'));
     })->name('admin.dashboard');
     Route::resource('polis', AdminPoliController::class);
     Route::resource('dokter', DokterController::class);
@@ -34,7 +57,15 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
 
 Route::middleware(['auth', 'role:dokter'])->prefix('dokter')->group(function () {
     Route::get('/dashboard', function () {
-        return view('dokter.dashboard');
+        $user = auth()->user();
+        $jadwalAktif = \App\Models\JadwalPeriksa::where('id_dokter', $user->id)->count();
+        $daftarPoli = \App\Models\DaftarPoli::whereHas('jadwalPeriksa', function($q) use ($user) {
+            $q->where('id_dokter', $user->id);
+        })->get();
+        $totalPasien = $daftarPoli->count();
+        $sudahDiperiksa = \App\Models\Periksa::whereIn('id_daftar_poli', $daftarPoli->pluck('id'))->count();
+        $belumDiperiksa = $totalPasien - $sudahDiperiksa;
+        return view('dokter.dashboard', compact('user', 'jadwalAktif', 'totalPasien', 'sudahDiperiksa', 'belumDiperiksa'));
     })->name('dokter.dashboard');
     Route::resource('jadwal-periksa', JadwalPeriksaController::class);
 

@@ -2,16 +2,24 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Obat extends Model
 {
+    use HasFactory;
+
     protected $table = 'obat';
 
     protected $fillable = [
         'nama_obat',
         'kemasan',
         'harga',
+        'expired',
+        'golongan_obat',
+        'produsen_obat',
+        'distributor',
+        'stok',
     ];
 
     public function detailPeriksas()

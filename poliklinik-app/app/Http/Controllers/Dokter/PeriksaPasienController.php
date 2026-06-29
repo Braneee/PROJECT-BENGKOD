@@ -50,18 +50,40 @@ class PeriksaPasienController extends Controller
 
         $obatIds = json_decode($request->obat_json, true);
 
-        $periksa = Periksa::create([
-            'id_daftar_poli' => $request->id_daftar_poli,
-            'tgl_periksa' => now(),
-            'catatan' => $request->catatan,
-            'biaya_periksa' => $request->biaya_periksa + 150000,
-        ]);
+        // 1. Validasi ketersediaan stok obat terlebih dahulu
+        $obats = Obat::whereIn('id', $obatIds)->get();
+        foreach ($obats as $obat) {
+            if ($obat->stok < 1) {
+                return back()->withErrors(['obat_json' => "Stok obat '{$obat->nama_obat}' tidak mencukupi! Silakan pilih obat lain."])->withInput();
+            }
+        }
 
-        foreach ($obatIds as $idObat) {
-            DetailPeriksa::create([
-                'id_periksa' => $periksa->id,
-                'id_obat' => $idObat,
-            ]);
+        try {
+            \Illuminate\Support\Facades\DB::transaction(function () use ($request, $obatIds, $obats) {
+                // 2. Buat data periksa
+                $periksa = Periksa::create([
+                    'id_daftar_poli' => $request->id_daftar_poli,
+                    'tgl_periksa' => now(),
+                    'catatan' => $request->catatan,
+                    'biaya_periksa' => $request->biaya_periksa + 150000,
+                ]);
+
+                // 3. Simpan detail periksa dan kurangi stok obat
+                foreach ($obatIds as $idObat) {
+                    DetailPeriksa::create([
+                        'id_periksa' => $periksa->id,
+                        'id_obat' => $idObat,
+                    ]);
+
+                    // Kurangi stok obat
+                    $obatModel = $obats->firstWhere('id', $idObat);
+                    if ($obatModel) {
+                        $obatModel->decrement('stok');
+                    }
+                }
+            });
+        } catch (\Exception $e) {
+            return back()->withErrors(['obat_json' => 'Terjadi kesalahan sistem saat memproses pemeriksaan dan resep obat.'])->withInput();
         }
 
         return redirect()->route('periksa-pasien.index')->with('success', 'Data periksa berhasil disimpan.');

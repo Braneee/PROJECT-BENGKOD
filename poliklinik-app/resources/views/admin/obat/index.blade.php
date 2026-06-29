@@ -15,6 +15,20 @@
         </a>
     </div>
 
+    {{-- Search Bar --}}
+    <div class="mb-6 flex justify-end">
+        <form action="{{ route('obat.index') }}" method="GET" class="w-full max-w-sm">
+            <div class="relative">
+                <input type="text" name="search" value="{{ request('search') }}"
+                       placeholder="Cari obat, golongan, distributor..." 
+                       class="w-full pl-4 pr-10 py-2.5 border-2 rounded-xl focus:border-primary focus:outline-none text-sm text-slate-700">
+                <button type="submit" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-primary transition">
+                    <i class="fas fa-search"></i>
+                </button>
+            </div>
+        </form>
+    </div>
+
     {{-- Card --}}
     <div class="card bg-base-100 shadow-md rounded-2 border">
         <div class="card-body p-0">
@@ -28,7 +42,10 @@
                             <th class="px-6 py-4">Nama Obat</th>
                             <th class="px-6 py-4">Kemasan</th>
                             <th class="px-6 py-4">Harga</th>
-                            <th class="px-6 py-4 text-right">Aksi</th>
+                             <th class="px-6 py-4">Expired</th>
+                             <th class="px-6 py-4">Golongan</th>
+                             <th class="px-6 py-4">Stok</th>
+                             <th class="px-6 py-4 text-right">Aksi</th>
                         </tr>
                     </thead>
 
@@ -50,6 +67,33 @@
 
                             <td class="px-6 py-4 font-semibold text-slate-800">
                                 Rp {{ number_format($obat->harga, 0, ',', '.') }}
+                            </td>
+
+                            <td class="px-6 py-4">
+                                {{ $obat->expired ? \Carbon\Carbon::parse($obat->expired)->format('d-M-Y') : '-' }}
+                            </td>
+
+                            <td class="px-6 py-4">
+                                <span class="inline-block px-3 py-1 text-xs font-semibold 
+                                             rounded-full bg-blue-100 text-blue-600">
+                                    {{ $obat->golongan_obat ?? '-' }}
+                                </span>
+                            </td>
+
+                            <td class="px-6 py-4">
+                                @if($obat->stok == 0)
+                                    <span class="inline-block px-3 py-1 text-xs font-bold rounded-full bg-red-50 text-red-500 border border-red-200">
+                                        <i class="fas fa-exclamation-triangle"></i> Habis
+                                    </span>
+                                @elseif($obat->stok < 10)
+                                    <span class="inline-block px-3 py-1 text-xs font-bold rounded-full bg-amber-50 text-amber-600 border border-amber-200">
+                                        <i class="fas fa-warning"></i> Menipis ({{ $obat->stok }})
+                                    </span>
+                                @else
+                                    <span class="inline-block px-3 py-1 text-xs font-bold rounded-full bg-emerald-50 text-emerald-600 border border-emerald-200">
+                                        <i class="fas fa-check"></i> Tersedia ({{ $obat->stok }})
+                                    </span>
+                                @endif
                             </td>
 
                             <td class="px-6 py-4 text-right">
@@ -85,7 +129,7 @@
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="4" class="text-center py-12 text-slate-400">
+                            <td colspan="7" class="text-center py-12 text-slate-400">
                                 <i class="fas fa-inbox text-3xl mb-3 block"></i>
                                 Belum ada data obat
                             </td>
@@ -95,6 +139,13 @@
 
                 </table>
             </div>
+
+            {{-- Pagination --}}
+            @if(method_exists($obats, 'hasPages') && $obats->hasPages())
+                <div class="px-6 py-4 border-t border-slate-100 bg-slate-50/50">
+                    {{ $obats->appends(request()->query())->links() }}
+                </div>
+            @endif
 
         </div>
     </div>

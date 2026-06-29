@@ -2,14 +2,14 @@
 
     {{-- Mobile Hamburger --}}
     <button onclick="toggleSidebar()" class="btn btn-square btn-ghost lg:hidden">
-        <i data-lucide="menu" class="w-5 h-5"></i>
+        <i class="fas fa-bars text-lg"></i>
     </button>
 
     {{-- Breadcrumb --}}
     <div class="flex-1">
         <div class="flex items-center gap-2 text-sm">
             <span class="text-base-content/50">Poliklinik</span>
-            <i data-lucide="chevron-right" class="w-4 h-4 text-base-content/30"></i>
+            <i class="fas fa-chevron-right text-slate-700 text-xs mx-1"></i>
             <span class="font-semibold text-base-content">
                 {{ $title ?? 'Dashboard' }}
             </span>
